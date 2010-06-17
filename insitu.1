@@ -1,0 +1,55 @@
+.TH INSITU 1 insitu\-1.0
+.SH NAME
+insitu \- modify files in place with shell commands
+.SH SYNOPSIS
+.nh
+insitu
+[\fB\-t\fR] file command
+.SH DESCRIPTION
+A shell pipeline cannot both read and write to the same file; for
+example
+
+.nf
+  cat foo | grep bar > foo
+.fi
+
+will merely delete the contents of foo.
+
+Insitu wraps a shell command, connecting its standard input and
+standard output to the file.  If
+.I command
+finishes successfully, the file will be truncated (or extended) to the
+size of the output produced by the command.  If
+.I command
+returns a non-zero exit status, the file will not be truncated (unless
+-t is passed), but contain the output read from the command, followed
+by the rest of the original file.  The part of the file overwritten by
+the command output will be lost.
+
+Insitu runs the command with '$SHELL -c \fIcommand\fR', substituting
+/bin/sh for $SHELL if the latter is not set.
+.SS Options
+.TP
+.B \-t
+truncate \fIfile\fR even if
+.I command
+returns a non-zero exit status.
+.SH EXIT STATUS
+insitu returns the exit status of \fIcommand\fR.
+Additionally,
+.B 128
+is returned if invalid flags are passed,
+.B 129
+if
+.I file
+cannot be accessed, and
+.B 130
+if the child process for running
+.I command
+cannot be started.
+.SH BUGS
+Insitu is a dangerous and brittle tool that can easily cause data
+corruption if the command fails halfway through.  Make sure you
+understand this risk before running it on important files.
+.SH SEE ALSO
+.BR cp (1), mv (1), sh (1)
